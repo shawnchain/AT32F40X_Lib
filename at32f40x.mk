@@ -55,21 +55,16 @@ endef
 
 # Output files
 BINLIB_F4=libat32f40x.a
-
-BINELF_F4=libat32f40x.elf
-BINHEX_F4=libat32f40x.hex
-BINBIN_F4=libat32f40x.bin
 BINMAP_F4=libat32f40x.map
 
 # Header directories
-# INC_F4= .. . $(F4_LIB_PATH)/CMSIS/Include/ $(F4_LIB_PATH)/Device/ 
 INC_F4= .. . ./cmsis/cm4/core_support/ ./cmsis/cm4/device_support/
 INC_F4+= $(STDLIB_PATH)/inc $(TOP_DIR)/at32
 
 INCLUDES_F4=$(INC_F4:%=-I%)
 
 # CMSIS libraries
-LIBS_F4=$(F4_LIB_PATH)/CMSIS/Lib/GCC/libarm_cortexM4lf_math.a
+LIBS_F4=
 
 # GNU ARM Embedded Toolchain
 CC=arm-none-eabi-gcc
@@ -156,14 +151,6 @@ $(BINDIR):
 
 $(OBJDIR_F4):
 	$(MDDIRS)
-
-# $(BINDIR)/$(BINHEX_F4): $(BINDIR)/$(BINELF_F4)
-# 	$(CP) -O ihex $< $@
-# 	@echo "Objcopy from ELF to IHEX complete!\n"
-
-# $(BINDIR)/$(BINBIN_F4): $(BINDIR)/$(BINELF_F4)
-# 	$(CP) -O binary $< $@
-# 	@echo "Objcopy from ELF to BINARY complete!\n"
 
 $(BINDIR)/$(BINLIB_F4): $(OBJ_F4)
 #	$(CXX) $(OBJ_F4) $(LDFLAGS) -o $@
