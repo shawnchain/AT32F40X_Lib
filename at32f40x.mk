@@ -25,7 +25,6 @@ CLK_25MHz=25000000
 
 MCU_TYPE?=AT32F403ARGT7
 OSC?=$(CLK_8MHz)
-ROM_OFFSET?=0x0
 
 F4_LIB_PATH=../STM32F4XX_Lib
 
@@ -92,7 +91,7 @@ $(eval $(call CompileRule_C, $(STDLIB_SRC_PATH)))
 # MCU flags
 MCFLAGS_F4=-mcpu=cortex-m4 -mthumb -mlittle-endian -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb-interwork
 
-DEFS_F4= -DAT32 -DAT32F4 -D$(MCU_TYPE) -DHSE_VALUE=$(OSC) -DMADEBYMAKEFILE -DVECT_TAB_OFFSET=$(ROM_OFFSET)
+DEFS_F4= -DAT32 -DAT32F4 -D$(MCU_TYPE) -DHSE_VALUE=$(OSC) -DMADEBYMAKEFILE
 
 ifeq ($(RELEASE),1)
 	DEFS_F4+=-DRELEASE=1
