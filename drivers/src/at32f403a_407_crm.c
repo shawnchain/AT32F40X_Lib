@@ -603,7 +603,7 @@ void crm_clocks_freq_get(crm_clocks_freq_type *clocks_struct)
         clocks_struct->sclk_freq = HICK_VALUE;
       break;
     case CRM_SCLK_HEXT:
-      clocks_struct->sclk_freq = HEXT_VALUE;
+      clocks_struct->sclk_freq = crm_hext_clock_get();
       break;
     case CRM_SCLK_PLL:
       pll_clock_source = CRM->cfg_bit.pllrcs;
@@ -633,11 +633,11 @@ void crm_clocks_freq_get(crm_clocks_freq_type *clocks_struct)
         {
           hext_prediv = CRM->misc3_bit.hextdiv;
           /* hext clock divided by 2 */
-          clocks_struct->sclk_freq = (HEXT_VALUE / (hext_prediv + 2)) * pll_mult;
+          clocks_struct->sclk_freq = (crm_hext_clock_get() / (hext_prediv + 2)) * pll_mult;
         }
         else
         {
-          clocks_struct->sclk_freq = HEXT_VALUE * pll_mult;
+          clocks_struct->sclk_freq = crm_hext_clock_get() * pll_mult;
         }
       }
       break;
@@ -844,6 +844,17 @@ void crm_emac_output_pulse_set(crm_emac_output_pulse_type width)
   CRM->misc3_bit.emac_pps_sel = width;
 }
 #endif
+
+static uint32_t _hext_clk_value = HEXT_VALUE;   // by default will be 8MHz
+void crm_hext_clock_set(uint32_t clk)
+{
+  _hext_clk_value = clk;
+}
+
+uint32_t crm_hext_clock_get(void)
+{
+  return _hext_clk_value;
+}
 
 /**
   * @}

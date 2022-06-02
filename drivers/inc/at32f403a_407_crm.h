@@ -1123,6 +1123,9 @@ void crm_clkout_div_set(crm_clkout_div_type clkout_div);
 void crm_emac_output_pulse_set(crm_emac_output_pulse_type width);
 #endif
 
+void crm_hext_clock_set(uint32_t clk);
+uint32_t crm_hext_clock_get(void);
+
 /**
   * @}
   */
