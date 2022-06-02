@@ -53,8 +53,13 @@ $$(OBJDIR_F4)/%.o: $(1)/%.cpp
 endef
 
 # Output files
-BINLIB_F4=libat32f40x.a
-BINMAP_F4=libat32f40x.map
+ifeq ($(RELEASE),1)
+BINSUFFIX:=_rel
+else
+BINSUFFIX:=_dbg
+endif
+BINLIB_F4=libat32f40x$(BINSUFFIX).a
+BINMAP_F4=libat32f40x$(BINSUFFIX).map
 
 # Header directories
 INC_F4= .. . ./cmsis/cm4/core_support/ ./cmsis/cm4/device_support/
