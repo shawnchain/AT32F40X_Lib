@@ -63,7 +63,7 @@ BINMAP_F4=libat32f40x$(BINSUFFIX).map
 
 # Header directories
 INC_F4= .. . ./cmsis/cm4/core_support/ ./cmsis/cm4/device_support/
-INC_F4+= $(STDLIB_PATH)/inc $(TOP_DIR)/at32
+INC_F4+= $(STDLIB_PATH)/inc $(TOP_DIR)/BoardSupport/at32
 
 INCLUDES_F4=$(INC_F4:%=-I%)
 
