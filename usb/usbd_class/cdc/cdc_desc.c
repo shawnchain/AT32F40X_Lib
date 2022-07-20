@@ -28,6 +28,8 @@
 #include "usbd_core.h"
 #include "cdc_desc.h"
 
+#include <string.h>
+
 /** @addtogroup AT32F403A_407_middlewares_usbd_class
   * @{
   */
@@ -52,7 +54,7 @@ static usbd_desc_t *get_device_serial_string(void);
 static usbd_desc_t *get_device_interface_string(void);
 static usbd_desc_t *get_device_config_string(void);
 
-static uint16_t usbd_unicode_convert(uint8_t *string, uint8_t *unicode_buf);
+static uint16_t usbd_unicode_convert(const uint8_t *string, uint8_t *unicode_buf);
 static void usbd_int_to_unicode (uint32_t value , uint8_t *pbuf , uint8_t len);
 static void get_serial_num(void);
 static uint8_t g_usbd_desc_buffer[256];
@@ -253,10 +255,10 @@ static usbd_desc_t vp_desc;
   * @param  unicode_buf: unicode buffer
   * @retval length
   */
-static uint16_t usbd_unicode_convert(uint8_t *string, uint8_t *unicode_buf)
+static uint16_t usbd_unicode_convert(const uint8_t *string, uint8_t *unicode_buf)
 {
   uint16_t str_len = 0, id_pos = 2;
-  uint8_t *tmp_str = string;
+  const uint8_t *tmp_str = string;
 
   while(*tmp_str != '\0')
   {
@@ -300,6 +302,10 @@ static void usbd_int_to_unicode (uint32_t value , uint8_t *pbuf , uint8_t len)
   }
 }
 
+const char* __attribute__ ((weak))  usb_desc_get_hw_serial() {
+  return NULL;
+}
+
 /**
   * @brief  usb get serial number
   * @param  none
@@ -307,6 +313,19 @@ static void usbd_int_to_unicode (uint32_t value , uint8_t *pbuf , uint8_t len)
   */
 static void get_serial_num(void)
 {
+  const char* serial = NULL;
+  serial = usb_desc_get_hw_serial();
+
+  if (serial > 0) {
+    uint8_t buf[18];
+    usbd_unicode_convert((const uint8_t*)"0000", buf);
+    memcpy(&g_string_serial[2], buf + 2, 8);
+    usbd_unicode_convert((const uint8_t*)serial, buf);
+    memcpy(&g_string_serial[10], buf + 2, 16);
+
+    return;
+  }
+
   uint32_t serial0, serial1, serial2;
 
   serial0 = *(uint32_t*)MCU_ID1;

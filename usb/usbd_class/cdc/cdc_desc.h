@@ -54,8 +54,13 @@ extern "C" {
 /**
   * @brief usb vendor id and product id define
   */
+#if defined(DRCC_USB_VID) && defined(DRCC_USB_PID)
+#define USBD_CDC_VENDOR_ID               DRCC_USB_VID
+#define USBD_CDC_PRODUCT_ID              DRCC_USB_PID
+#else
 #define USBD_CDC_VENDOR_ID               0x2E3C
 #define USBD_CDC_PRODUCT_ID              0x5740
+#endif
 
 /**
   * @brief usb descriptor size define
@@ -67,10 +72,19 @@ extern "C" {
 /**
   * @brief usb string define(vendor, product configuration, interface)
   */
+#if defined(DRCC_DVM)
+#define USBD_CDC_DESC_MANUFACTURER_STRING    "DRCC"
+#define USBD_CDC_DESC_PRODUCT_STRING         "DRCC DVM Port"
+#define USBD_CDC_DESC_CONFIGURATION_STRING   "DRCC DVM Config"
+#define USBD_CDC_DESC_INTERFACE_STRING       "DRCC DVM Interface"
+
+#else
 #define USBD_CDC_DESC_MANUFACTURER_STRING    "Artery"
 #define USBD_CDC_DESC_PRODUCT_STRING         "AT32 Virtual Com Port  "
 #define USBD_CDC_DESC_CONFIGURATION_STRING   "Virtual ComPort Config"
 #define USBD_CDC_DESC_INTERFACE_STRING       "Virtual ComPort Interface"
+
+#endif
 
 /**
   * @brief usb endpoint interval define
@@ -89,6 +103,7 @@ extern "C" {
 
 extern usbd_desc_handler cdc_desc_handler;
 
+const char* usb_desc_get_hw_serial();
 
 /**
   * @}
