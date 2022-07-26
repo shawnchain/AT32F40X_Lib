@@ -361,6 +361,18 @@ uint16_t usb_vcp_get_rxdata(void *udev, uint8_t *recv_data)
 }
 
 /**
+ * @brief Check if vcp has rx data available
+ * 
+ * @param udev 
+ * @return uint16_t 0 or 1 currently
+ */
+uint16_t usb_vcp_has_rxdata(void *udev) {
+  usbd_core_type *pudev = (usbd_core_type *)udev;
+  cdc_struct_type *pcdc = (cdc_struct_type *)pudev->class_handler->pdata;
+  return pcdc->g_rx_completed;
+}
+
+/**
   * @brief  usb device class send data
   * @param  udev: to the structure of usbd_core_type
   * @param  send_data: send data buffer
@@ -384,6 +396,11 @@ error_status usb_vcp_send_data(void *udev, uint8_t *send_data, uint16_t len)
   return status;
 }
 
+uint8_t usb_vcp_txbusy(void *udev) {
+  usbd_core_type *pudev = (usbd_core_type *)udev;
+  cdc_struct_type *pcdc = (cdc_struct_type *)pudev->class_handler->pdata;
+  return (pcdc->g_tx_completed == 0);
+}
 
 /**
   * @brief  usb device class request function

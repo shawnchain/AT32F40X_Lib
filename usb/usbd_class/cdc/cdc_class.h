@@ -50,9 +50,9 @@ extern "C" {
 /**
   * @brief usb cdc use endpoint define
   */
-#define USBD_CDC_INT_EPT                 0x82
-#define USBD_CDC_BULK_IN_EPT             0x81
-#define USBD_CDC_BULK_OUT_EPT            0x01
+#define USBD_CDC_INT_EPT                 0x82           // in  endpoint 2
+#define USBD_CDC_BULK_IN_EPT             0x81           // in  endpoint 1
+#define USBD_CDC_BULK_OUT_EPT            0x01           // out endpoint 1
 
 /**
   * @brief usb cdc in and out max packet size define
@@ -93,7 +93,9 @@ typedef struct
   */
 extern usbd_class_handler cdc_class_handler;
 uint16_t usb_vcp_get_rxdata(void *udev, uint8_t *recv_data);
+uint16_t usb_vcp_has_rxdata(void *udev);
 error_status usb_vcp_send_data(void *udev, uint8_t *send_data, uint16_t len);
+uint8_t usb_vcp_txbusy(void *udev);
 
 /**
   * @}
