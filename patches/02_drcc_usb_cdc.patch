@@ -1,0 +1,175 @@
+diff --git a/usb/usbd_class/cdc/cdc_class.c b/usb/usbd_class/cdc/cdc_class.c
+index aa27405..32c6d52 100644
+--- a/usb/usbd_class/cdc/cdc_class.c
++++ b/usb/usbd_class/cdc/cdc_class.c
+@@ -360,6 +360,18 @@ uint16_t usb_vcp_get_rxdata(void *udev, uint8_t *recv_data)
+   return tmp_len;
+ }
+ 
++/**
++ * @brief Check if vcp has rx data available
++ * 
++ * @param udev 
++ * @return uint16_t 0 or 1 currently
++ */
++uint16_t usb_vcp_has_rxdata(void *udev) {
++  usbd_core_type *pudev = (usbd_core_type *)udev;
++  cdc_struct_type *pcdc = (cdc_struct_type *)pudev->class_handler->pdata;
++  return pcdc->g_rx_completed;
++}
++
+ /**
+   * @brief  usb device class send data
+   * @param  udev: to the structure of usbd_core_type
+@@ -384,6 +396,11 @@ error_status usb_vcp_send_data(void *udev, uint8_t *send_data, uint16_t len)
+   return status;
+ }
+ 
++uint8_t usb_vcp_txbusy(void *udev) {
++  usbd_core_type *pudev = (usbd_core_type *)udev;
++  cdc_struct_type *pcdc = (cdc_struct_type *)pudev->class_handler->pdata;
++  return (pcdc->g_tx_completed == 0);
++}
+ 
+ /**
+   * @brief  usb device class request function
+diff --git a/usb/usbd_class/cdc/cdc_class.h b/usb/usbd_class/cdc/cdc_class.h
+index 05cb7f8..e8719b9 100644
+--- a/usb/usbd_class/cdc/cdc_class.h
++++ b/usb/usbd_class/cdc/cdc_class.h
+@@ -50,9 +50,9 @@ extern "C" {
+ /**
+   * @brief usb cdc use endpoint define
+   */
+-#define USBD_CDC_INT_EPT                 0x82
+-#define USBD_CDC_BULK_IN_EPT             0x81
+-#define USBD_CDC_BULK_OUT_EPT            0x01
++#define USBD_CDC_INT_EPT                 0x82           // in  endpoint 2
++#define USBD_CDC_BULK_IN_EPT             0x81           // in  endpoint 1
++#define USBD_CDC_BULK_OUT_EPT            0x01           // out endpoint 1
+ 
+ /**
+   * @brief usb cdc in and out max packet size define
+@@ -93,7 +93,9 @@ typedef struct
+   */
+ extern usbd_class_handler cdc_class_handler;
+ uint16_t usb_vcp_get_rxdata(void *udev, uint8_t *recv_data);
++uint16_t usb_vcp_has_rxdata(void *udev);
+ error_status usb_vcp_send_data(void *udev, uint8_t *send_data, uint16_t len);
++uint8_t usb_vcp_txbusy(void *udev);
+ 
+ /**
+   * @}
+diff --git a/usb/usbd_class/cdc/cdc_desc.c b/usb/usbd_class/cdc/cdc_desc.c
+index 9ed7db3..bffd526 100644
+--- a/usb/usbd_class/cdc/cdc_desc.c
++++ b/usb/usbd_class/cdc/cdc_desc.c
+@@ -28,6 +28,8 @@
+ #include "usbd_core.h"
+ #include "cdc_desc.h"
+ 
++#include <string.h>
++
+ /** @addtogroup AT32F403A_407_middlewares_usbd_class
+   * @{
+   */
+@@ -52,7 +54,7 @@ static usbd_desc_t *get_device_serial_string(void);
+ static usbd_desc_t *get_device_interface_string(void);
+ static usbd_desc_t *get_device_config_string(void);
+ 
+-static uint16_t usbd_unicode_convert(uint8_t *string, uint8_t *unicode_buf);
++static uint16_t usbd_unicode_convert(const uint8_t *string, uint8_t *unicode_buf);
+ static void usbd_int_to_unicode (uint32_t value , uint8_t *pbuf , uint8_t len);
+ static void get_serial_num(void);
+ static uint8_t g_usbd_desc_buffer[256];
+@@ -253,10 +255,10 @@ static usbd_desc_t vp_desc;
+   * @param  unicode_buf: unicode buffer
+   * @retval length
+   */
+-static uint16_t usbd_unicode_convert(uint8_t *string, uint8_t *unicode_buf)
++static uint16_t usbd_unicode_convert(const uint8_t *string, uint8_t *unicode_buf)
+ {
+   uint16_t str_len = 0, id_pos = 2;
+-  uint8_t *tmp_str = string;
++  const uint8_t *tmp_str = string;
+ 
+   while(*tmp_str != '\0')
+   {
+@@ -300,6 +302,10 @@ static void usbd_int_to_unicode (uint32_t value , uint8_t *pbuf , uint8_t len)
+   }
+ }
+ 
++const char* __attribute__ ((weak))  usb_desc_get_hw_serial() {
++  return NULL;
++}
++
+ /**
+   * @brief  usb get serial number
+   * @param  none
+@@ -307,6 +313,19 @@ static void usbd_int_to_unicode (uint32_t value , uint8_t *pbuf , uint8_t len)
+   */
+ static void get_serial_num(void)
+ {
++  const char* serial = NULL;
++  serial = usb_desc_get_hw_serial();
++
++  if (serial > 0) {
++    uint8_t buf[18];
++    usbd_unicode_convert((const uint8_t*)"0000", buf);
++    memcpy(&g_string_serial[2], buf + 2, 8);
++    usbd_unicode_convert((const uint8_t*)serial, buf);
++    memcpy(&g_string_serial[10], buf + 2, 16);
++
++    return;
++  }
++
+   uint32_t serial0, serial1, serial2;
+ 
+   serial0 = *(uint32_t*)MCU_ID1;
+diff --git a/usb/usbd_class/cdc/cdc_desc.h b/usb/usbd_class/cdc/cdc_desc.h
+index 87d8aa6..eac68ed 100644
+--- a/usb/usbd_class/cdc/cdc_desc.h
++++ b/usb/usbd_class/cdc/cdc_desc.h
+@@ -54,8 +54,13 @@ extern "C" {
+ /**
+   * @brief usb vendor id and product id define
+   */
++#if defined(DRCC_USB_VID) && defined(DRCC_USB_PID)
++#define USBD_CDC_VENDOR_ID               DRCC_USB_VID
++#define USBD_CDC_PRODUCT_ID              DRCC_USB_PID
++#else
+ #define USBD_CDC_VENDOR_ID               0x2E3C
+ #define USBD_CDC_PRODUCT_ID              0x5740
++#endif
+ 
+ /**
+   * @brief usb descriptor size define
+@@ -67,11 +72,20 @@ extern "C" {
+ /**
+   * @brief usb string define(vendor, product configuration, interface)
+   */
++#if defined(DRCC_DVM)
++#define USBD_CDC_DESC_MANUFACTURER_STRING    "DRCC"
++#define USBD_CDC_DESC_PRODUCT_STRING         "DRCC DVM CDC"
++#define USBD_CDC_DESC_CONFIGURATION_STRING   "DRCC DVM Config"
++#define USBD_CDC_DESC_INTERFACE_STRING       "DRCC DVM Interface"
++
++#else
+ #define USBD_CDC_DESC_MANUFACTURER_STRING    "Artery"
+ #define USBD_CDC_DESC_PRODUCT_STRING         "AT32 Virtual Com Port  "
+ #define USBD_CDC_DESC_CONFIGURATION_STRING   "Virtual ComPort Config"
+ #define USBD_CDC_DESC_INTERFACE_STRING       "Virtual ComPort Interface"
+ 
++#endif
++
+ /**
+   * @brief usb endpoint interval define
+   */
+@@ -89,6 +103,7 @@ extern "C" {
+ 
+ extern usbd_desc_handler cdc_desc_handler;
+ 
++const char* usb_desc_get_hw_serial();
+ 
+ /**
+   * @}

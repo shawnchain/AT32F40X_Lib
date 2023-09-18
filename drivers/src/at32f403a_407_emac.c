@@ -1,8 +1,6 @@
 /**
   **************************************************************************
   * @file     at32f403a_407_emac.c
-  * @version  v2.0.9
-  * @date     2022-04-25
   * @brief    contains all the functions for the emac firmware library
   **************************************************************************
   *                       Copyright notice & Disclaimer
