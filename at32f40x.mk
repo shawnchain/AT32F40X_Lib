@@ -97,7 +97,10 @@ $(eval $(call CompileRule_C, $(STDLIB_SRC_PATH)))
 # MCU flags
 MCFLAGS_F4=-mcpu=cortex-m4 -mthumb -mlittle-endian -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb-interwork
 
-DEFS_F4= -DAT32 -DAT32F4 -D$(MCU_TYPE) -DHSE_VALUE=$(OSC) -DMADEBYMAKEFILE
+DEFS_F4= -DAT32 -DAT32F4 -D$(MCU_TYPE) -DMADEBYMAKEFILE
+ifneq ($(OSC),0)
+DEFS_F4+=-DHSE_VALUE=$(OSC)
+endif
 
 ifeq ($(USE_USB),1)
 DEFS_F4+=-DENABLE_USB
