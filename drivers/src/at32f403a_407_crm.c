@@ -847,7 +847,12 @@ void crm_emac_output_pulse_set(crm_emac_output_pulse_type width)
 }
 #endif
 
+#ifdef HEXT_VALUE
 static uint32_t _hext_clk_value = HEXT_VALUE;   // by default will be 8MHz
+#else
+static uint32_t _hext_clk_value = 0;
+#endif
+
 void crm_hext_clock_set(uint32_t clk)
 {
   _hext_clk_value = clk;
